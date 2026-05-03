@@ -1,0 +1,56 @@
+# Python/runtime noise
+__pycache__/
+*.py[cod]
+*.tmp
+.claude/
+
+# Local credentials and generated certs
+*.pem
+*.key
+*.rap
+
+# Captured telemetry and personal runtime output
+*.log
+*.log.gz
+listener/Myserver/telemetry/
+listener/Myserver/saves/
+listener/Myserver/local_reverse/
+listener/Myserver/npstorage_samples/
+listener/Myserver/requests.log
+listener/Myserver/save_state.json
+listener/Myserver/save_state_envelope.json
+listener/Myserver/rpcs3_log_copy.gz
+
+# Generated local TSS cache. Keep the directory, not the downloaded/cache files.
+listener/Myserver/tss/*.tss
+!listener/Myserver/tss/.gitkeep
+
+# Game, emulator, package, and reverse-engineering databases should not be public.
+ACI/
+game/
+US/
+IDA/
+rpcs3-v*/
+tools/
+listener/Optmuis server/
+*.pkg
+*.zip
+*.idb
+*.i64
+*.id0
+*.id1
+*.nam
+*.til
+*.ELF
+*.BIN
+*.bin
+*.PAC
+titleUserStorageSave*.bin
+
+# Local scratch files from this workspace
+New Text Document*.txt
+gemini-code-*.txt
+error.txt
+DNS.txt
+RCPS3 GAME FILES LOCATION.txt
+image.png

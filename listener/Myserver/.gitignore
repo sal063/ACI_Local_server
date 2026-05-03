@@ -1,0 +1,23 @@
+# Runtime logs and telemetry
+requests.log
+telemetry/
+saves/
+local_reverse/
+npstorage_samples/
+save_state.json
+save_state_envelope.json
+rpcs3_log_copy.gz
+titleUserStorageSave*.bin
+*.bin
+
+# Generated certificates
+cert.pem
+key.pem
+
+# Local TSS cache. Keep the directory in git, not the binary files.
+tss/*.tss
+!tss/.gitkeep
+
+# Python runtime files
+__pycache__/
+*.py[cod]
