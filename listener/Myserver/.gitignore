@@ -1,5 +1,7 @@
 # Runtime logs and telemetry
 requests.log
+*.log
+*.log.gz
 telemetry/
 saves/
 local_reverse/
@@ -9,6 +11,7 @@ save_state_envelope.json
 rpcs3_log_copy.gz
 titleUserStorageSave*.bin
 *.bin
+message.txt
 
 # Generated certificates
 cert.pem

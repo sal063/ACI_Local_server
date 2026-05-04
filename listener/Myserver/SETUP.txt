@@ -1,0 +1,93 @@
+ACI Local Mock Server - Basic Setup
+===================================
+
+This folder can be zipped and shared. The runtime junk stays out of git, and
+your friend only needs Python plus their own local TSS files.
+
+What this server does
+---------------------
+
+- Runs a local HTTP/HTTPS mock for Ace Combat Infinity.
+- Serves local TSS files from the `tss` folder.
+- Captures request logs and telemetry while the game is running.
+- Watches the RPCS3 log so save/TSS calls can be inspected locally.
+
+What your friend needs
+----------------------
+
+1. Python 3 installed.
+2. The Python `cryptography` package installed:
+
+   pip install cryptography
+
+3. Their local TSS files copied into:
+
+   tss
+
+4. An RPCS3 build folder. For this fork, the server should point at:
+
+   C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin
+
+Quick test
+----------
+
+Open a terminal in this folder and run:
+
+  python aci_listener.py --self-test --no-rpcs3-log-watch --rpcs3-bin "C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin"
+
+If that passes, the basic server setup is good.
+
+Hosts file
+----------
+
+Add these lines to the Windows hosts file as Administrator:
+
+  127.0.0.1 dev-wind.siliconstudio.co.jp
+  127.0.0.1 a0.ww.np.dl.playstation.net
+  127.0.0.1 a0.ww.sp-int.dl.playstation.net
+
+Windows hosts file path:
+
+  C:\Windows\System32\drivers\etc\hosts
+
+Then run:
+
+  ipconfig /flushdns
+
+How to start the server
+-----------------------
+
+Use an Administrator terminal because the default ports are 80 and 443:
+
+  python aci_listener.py --rpcs3-bin "C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin"
+
+How to use it
+-------------
+
+1. Start the server and leave it running.
+2. Launch RPCS3 and start the game.
+3. Watch these files while testing:
+
+   requests.log
+   telemetry\summary.json
+   telemetry\http_events.jsonl
+   telemetry\rpcs3_hle_events.jsonl
+
+Useful extra commands
+---------------------
+
+Rebuild the merged save state from captured logs:
+
+  python aci_listener.py --rebuild-save-from-logs --rpcs3-bin "C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin"
+
+Write a redacted local debug report:
+
+  python aci_listener.py --debug-report --rpcs3-bin "C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin"
+
+Notes
+-----
+
+- Runtime logs, generated certs, telemetry, saves, and local TSS binaries are
+  intentionally not tracked in git.
+- The server can replay captured HTTP save shapes, but NP TUS payload injection
+  still needs game-side or RPCS3-side patching.

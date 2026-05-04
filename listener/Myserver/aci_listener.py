@@ -68,20 +68,37 @@ TSS_JSONL_PATH = TELEMETRY_DIR / "tss_events.jsonl"
 TSS_ANALYSIS_DIR = TELEMETRY_DIR / "tss_analysis"
 NPSTORAGE_JSONL_PATH = TELEMETRY_DIR / "npstorage_samples.jsonl"
 SUMMARY_PATH = TELEMETRY_DIR / "summary.json"
-RPCS3_LOG_DEFAULT = (
-    HERE.parent.parent
-    / "rpcs3-v0.0.40-19253-7028e85f_win64_msvc"
-    / "log"
-    / "RPCS3.log"
-)
-RPCS3_ROOT_DEFAULT = RPCS3_LOG_DEFAULT.parents[1]
-RPCS3_USER_SAVEDATA_DIR = (
-    RPCS3_ROOT_DEFAULT
-    / "dev_hdd0"
-    / "home"
-    / "00000001"
-    / "savedata"
-)
+
+
+def _normalize_rpcs3_bin(path):
+    path = Path(path).expanduser()
+    if path.name.lower() == "bin":
+        return path
+    if (path / "bin").exists():
+        return path / "bin"
+    return path
+
+
+def _default_rpcs3_bin():
+    candidates = [
+        os.environ.get("ACI_RPCS3_BIN"),
+        HERE.parent.parent / "rpcs3-source" / "build-msvc-aci-tss-vulkan" / "bin",
+        HERE.parent.parent / "rpcs3-v0.0.40-19253-7028e85f_win64_msvc",
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        path = _normalize_rpcs3_bin(candidate)
+        if path.exists():
+            return path
+    return _normalize_rpcs3_bin(
+        HERE.parent.parent / "rpcs3-source" / "build-msvc-aci-tss-vulkan" / "bin"
+    )
+
+
+RPCS3_ROOT_DEFAULT = _default_rpcs3_bin()
+RPCS3_LOG_DEFAULT = Path(os.environ.get("ACI_RPCS3_LOG", RPCS3_ROOT_DEFAULT / "log" / "RPCS3.log"))
+RPCS3_USER_SAVEDATA_DIR = RPCS3_ROOT_DEFAULT / "dev_hdd0" / "home" / "00000001" / "savedata"
 RPCS3_PLAYDATA_DIR = RPCS3_USER_SAVEDATA_DIR / "BLUS30613-PLAYDATA"
 
 SERVER_RUN_ID = f"{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_{os.getpid()}_{uuid.uuid4().hex[:8]}"
@@ -116,6 +133,25 @@ _stats = {
     "last_save_rebuild": None,
     "last_rpcs3_scan": None,
 }
+
+
+def configure_rpcs3_paths(rpcs3_bin=None, rpcs3_log=None):
+    global RPCS3_ROOT_DEFAULT, RPCS3_LOG_DEFAULT, RPCS3_USER_SAVEDATA_DIR, RPCS3_PLAYDATA_DIR
+
+    if rpcs3_bin:
+        root = _normalize_rpcs3_bin(rpcs3_bin)
+    elif rpcs3_log:
+        log_path = Path(rpcs3_log).expanduser()
+        root = log_path.parents[1] if len(log_path.parents) >= 2 else log_path.parent
+    else:
+        root = _default_rpcs3_bin()
+
+    RPCS3_ROOT_DEFAULT = root
+    RPCS3_LOG_DEFAULT = (
+        Path(rpcs3_log).expanduser() if rpcs3_log else RPCS3_ROOT_DEFAULT / "log" / "RPCS3.log"
+    )
+    RPCS3_USER_SAVEDATA_DIR = RPCS3_ROOT_DEFAULT / "dev_hdd0" / "home" / "00000001" / "savedata"
+    RPCS3_PLAYDATA_DIR = RPCS3_USER_SAVEDATA_DIR / "BLUS30613-PLAYDATA"
 
 
 def _ensure_dirs():
@@ -2247,7 +2283,16 @@ def main():
     parser.add_argument("--https-port", type=int, default=int(os.environ.get("ACI_HTTPS_PORT", "443")))
     parser.add_argument("--no-https", action="store_true")
     parser.add_argument("--no-rpcs3-log-watch", action="store_true")
-    parser.add_argument("--rpcs3-log", default=str(RPCS3_LOG_DEFAULT))
+    parser.add_argument(
+        "--rpcs3-bin",
+        default=os.environ.get("ACI_RPCS3_BIN"),
+        help="Path to the RPCS3 bin directory or its parent folder.",
+    )
+    parser.add_argument(
+        "--rpcs3-log",
+        default=os.environ.get("ACI_RPCS3_LOG"),
+        help="Optional override for the RPCS3.log path.",
+    )
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--rebuild-save-from-logs", action="store_true")
     parser.add_argument("--extra-save-log", action="append", default=[])
@@ -2261,6 +2306,8 @@ def main():
     )
     parser.add_argument("--debug-report", action="store_true", help="Write a redacted telemetry/debug report and exit.")
     args = parser.parse_args()
+    configure_rpcs3_paths(rpcs3_bin=args.rpcs3_bin, rpcs3_log=args.rpcs3_log)
+    active_rpcs3_log = Path(args.rpcs3_log).expanduser() if args.rpcs3_log else RPCS3_LOG_DEFAULT
 
     _ensure_dirs()
     ensure_cert()
@@ -2301,7 +2348,7 @@ def main():
         )
         sys.exit(0)
 
-    scan_summary = scan_rpcs3_log(Path(args.rpcs3_log), append=False)
+    scan_summary = scan_rpcs3_log(active_rpcs3_log, append=False)
     log(f"[rpcs3] scanned {scan_summary.get('lines', 0)} lines; events={scan_summary.get('events', {})}")
     _write_summary()
 
@@ -2315,7 +2362,7 @@ def main():
 
     watcher = None
     if not args.no_rpcs3_log_watch:
-        watcher = Rpcs3LogWatcher(args.rpcs3_log)
+        watcher = Rpcs3LogWatcher(active_rpcs3_log)
         watcher.start()
 
     threads = [threading.Thread(target=serve_http, args=(args.http_port,), daemon=True)]

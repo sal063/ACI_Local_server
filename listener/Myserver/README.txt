@@ -14,13 +14,17 @@ Quick start
 
 From this directory:
 
-  python aci_listener.py --self-test --no-rpcs3-log-watch
+  python aci_listener.py --self-test --no-rpcs3-log-watch --rpcs3-bin "C:\path\to\rpcs3\bin"
+
+For your current RPCS3 fork layout, this is the matching form:
+
+  python aci_listener.py --self-test --no-rpcs3-log-watch --rpcs3-bin "C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin"
 
 For a real game run, open an Administrator shell because ports 80 and 443 are
 privileged on Windows:
 
   cd <repo>\listener\Myserver
-  python aci_listener.py
+  python aci_listener.py --rpcs3-bin "<rpcs3-bin>"
 
 Host redirects
 --------------
@@ -125,3 +129,4 @@ do not commit raw samples because they may contain tickets, PSIDs, and account
 identifiers.
 
 More setup detail is in MOCK_SERVER_WALKTHROUGH.md.
+There is also a short friendlier handoff guide in SETUP.txt.

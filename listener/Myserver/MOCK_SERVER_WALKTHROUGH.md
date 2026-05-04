@@ -15,7 +15,7 @@ folder.
 
 ```powershell
 cd "<repo>\listener\Myserver"
-python aci_listener.py --self-test --no-rpcs3-log-watch
+python aci_listener.py --self-test --no-rpcs3-log-watch --rpcs3-bin "<rpcs3-bin>"
 ```
 
 Expected result:
@@ -32,6 +32,7 @@ Add DNS overrides for the game backend and TSS host:
 ```text
 127.0.0.1 dev-wind.siliconstudio.co.jp
 127.0.0.1 a0.ww.np.dl.playstation.net
+127.0.0.1 a0.ww.sp-int.dl.playstation.net
 ```
 
 On Windows, edit this file as Administrator:
@@ -50,7 +51,7 @@ ipconfig /flushdns
 
 ```powershell
 cd "<repo>\listener\Myserver"
-python aci_listener.py
+python aci_listener.py --rpcs3-bin "<rpcs3-bin>"
 ```
 
 The server listens on:
@@ -60,6 +61,12 @@ The server listens on:
 
 Port `443` accepts TLS and plaintext HTTP. Some captured game traffic uses
 `Host: dev-wind.siliconstudio.co.jp:443` while still speaking plaintext.
+
+For your current fork, `<rpcs3-bin>` should be:
+
+```text
+C:\ext\OPus\New folder\Trae\ACI\rpcs3-source\build-msvc-aci-tss-vulkan\bin
+```
 
 ## 5. Smoke Test From Another Shell
 
